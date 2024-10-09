@@ -2,16 +2,19 @@ package pg
 
 import (
 	"context"
+
+	"github.com/AwesomeXjs/libs/pkg/dbClient"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
-	"practice/internal/client/db"
 )
 
+// Client - db client struct
 type pgClient struct {
-	masterDBC db.DB
+	masterDBC dbClient.DB
 }
 
-func New(ctx context.Context, dsn string) (db.Client, error) {
+// New - create new db client with pgxpool.Connect
+func New(ctx context.Context, dsn string) (dbClient.Client, error) {
 	dbc, err := pgxpool.Connect(ctx, dsn)
 	if err != nil {
 		return nil, errors.Errorf("failed to connect to db: %v", err)
@@ -22,10 +25,12 @@ func New(ctx context.Context, dsn string) (db.Client, error) {
 	}, nil
 }
 
-func (c *pgClient) DB() db.DB {
+// DB - returning db
+func (c *pgClient) DB() dbClient.DB {
 	return c.masterDBC
 }
 
+// Close - close db
 func (c *pgClient) Close() error {
 	if c.masterDBC != nil {
 		c.masterDBC.Close()

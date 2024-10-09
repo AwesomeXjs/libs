@@ -2,26 +2,27 @@ package transaction
 
 import (
 	"context"
-	"practice/internal/client/db"
-	"practice/internal/client/db/pg"
+
+	"github.com/AwesomeXjs/libs/pkg/dbClient"
+	"github.com/AwesomeXjs/libs/pkg/dbClient/pg"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/pkg/errors"
 )
 
 type manager struct {
-	db db.Transactor
+	db dbClient.Transactor
 }
 
 // NewTransactionManager создает новый менеджер транзакций, который удовлетворяет интерфейсу db.TxManager
-func NewTransactionManager(db db.Transactor) db.TxManager {
+func NewTransactionManager(db dbClient.Transactor) dbClient.TxManager {
 	return &manager{
 		db: db,
 	}
 }
 
 // transaction основная функция, которая выполняет указанный пользователем обработчик в транзакции
-func (m *manager) transaction(ctx context.Context, opts pgx.TxOptions, fn db.Handler) (err error) {
+func (m *manager) transaction(ctx context.Context, opts pgx.TxOptions, fn dbClient.Handler) (err error) {
 	// Если это вложенная транзакция, пропускаем инициацию новой транзакции и выполняем обработчик.
 	tx, ok := ctx.Value(pg.TxKey).(pgx.Tx)
 	if ok {
@@ -72,7 +73,7 @@ func (m *manager) transaction(ctx context.Context, opts pgx.TxOptions, fn db.Han
 	return err
 }
 
-func (m *manager) ReadCommitted(ctx context.Context, f db.Handler) error {
+func (m *manager) ReadCommitted(ctx context.Context, f dbClient.Handler) error {
 	txOpts := pgx.TxOptions{IsoLevel: pgx.ReadCommitted}
 	return m.transaction(ctx, txOpts, f)
 }

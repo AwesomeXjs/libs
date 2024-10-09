@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"practice/internal/client/db"
-	"practice/internal/client/db/prettier"
+
+	"github.com/AwesomeXjs/libs/pkg/dbClient"
+	"github.com/AwesomeXjs/libs/pkg/dbClient/prettier"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgconn"
@@ -23,13 +24,13 @@ type pg struct {
 	dbc *pgxpool.Pool
 }
 
-func NewDB(dbc *pgxpool.Pool) db.DB {
+func NewDB(dbc *pgxpool.Pool) dbClient.DB {
 	return &pg{
 		dbc: dbc,
 	}
 }
 
-func (p *pg) ScanOneContext(ctx context.Context, dest interface{}, q db.Query, args ...interface{}) error {
+func (p *pg) ScanOneContext(ctx context.Context, dest interface{}, q dbClient.Query, args ...interface{}) error {
 	logQuery(ctx, q, args...)
 
 	row, err := p.QueryContext(ctx, q, args...)
@@ -40,7 +41,7 @@ func (p *pg) ScanOneContext(ctx context.Context, dest interface{}, q db.Query, a
 	return pgxscan.ScanOne(dest, row)
 }
 
-func (p *pg) ScanAllContext(ctx context.Context, dest interface{}, q db.Query, args ...interface{}) error {
+func (p *pg) ScanAllContext(ctx context.Context, dest interface{}, q dbClient.Query, args ...interface{}) error {
 	logQuery(ctx, q, args...)
 
 	rows, err := p.QueryContext(ctx, q, args...)
@@ -51,7 +52,7 @@ func (p *pg) ScanAllContext(ctx context.Context, dest interface{}, q db.Query, a
 	return pgxscan.ScanAll(dest, rows)
 }
 
-func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (pgconn.CommandTag, error) {
+func (p *pg) ExecContext(ctx context.Context, q dbClient.Query, args ...interface{}) (pgconn.CommandTag, error) {
 	logQuery(ctx, q, args...)
 
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
@@ -62,7 +63,7 @@ func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (
 	return p.dbc.Exec(ctx, q.QueryRaw, args...)
 }
 
-func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) (pgx.Rows, error) {
+func (p *pg) QueryContext(ctx context.Context, q dbClient.Query, args ...interface{}) (pgx.Rows, error) {
 	logQuery(ctx, q, args...)
 
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
@@ -73,7 +74,7 @@ func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) 
 	return p.dbc.Query(ctx, q.QueryRaw, args...)
 }
 
-func (p *pg) QueryRowContext(ctx context.Context, q db.Query, args ...interface{}) pgx.Row {
+func (p *pg) QueryRowContext(ctx context.Context, q dbClient.Query, args ...interface{}) pgx.Row {
 	logQuery(ctx, q, args...)
 
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
@@ -100,7 +101,7 @@ func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
 	return context.WithValue(ctx, TxKey, tx)
 }
 
-func logQuery(ctx context.Context, q db.Query, args ...interface{}) {
+func logQuery(ctx context.Context, q dbClient.Query, args ...interface{}) {
 	prettyQuery := prettier.Pretty(q.QueryRaw, prettier.PlaceholderDollar, args...)
 	log.Println(
 		ctx,
