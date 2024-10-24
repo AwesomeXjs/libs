@@ -100,6 +100,7 @@ func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
 }
 
 func logQuery(ctx context.Context, q dbClient.Query, args ...interface{}) {
+	//
 	prettyQuery := prettier.Pretty(q.QueryRaw, prettier.PlaceholderDollar, args...)
 	log.Println(
 		ctx,
