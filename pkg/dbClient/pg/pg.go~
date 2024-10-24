@@ -31,6 +31,8 @@ func NewDB(dbc *pgxpool.Pool) dbClient.DB {
 }
 
 func (p *pg) ScanOneContext(ctx context.Context, dest interface{}, q dbClient.Query, args ...interface{}) error {
+	logQuery(ctx, q, args...)
+
 	row, err := p.QueryContext(ctx, q, args...)
 	if err != nil {
 		return err
@@ -40,7 +42,7 @@ func (p *pg) ScanOneContext(ctx context.Context, dest interface{}, q dbClient.Qu
 }
 
 func (p *pg) ScanAllContext(ctx context.Context, dest interface{}, q dbClient.Query, args ...interface{}) error {
-	//logQuery(ctx, q, args...)
+	logQuery(ctx, q, args...)
 
 	rows, err := p.QueryContext(ctx, q, args...)
 	if err != nil {
@@ -51,7 +53,7 @@ func (p *pg) ScanAllContext(ctx context.Context, dest interface{}, q dbClient.Qu
 }
 
 func (p *pg) ExecContext(ctx context.Context, q dbClient.Query, args ...interface{}) (pgconn.CommandTag, error) {
-	//logQuery(ctx, q, args...)
+	logQuery(ctx, q, args...)
 
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
 	if ok {
@@ -62,7 +64,7 @@ func (p *pg) ExecContext(ctx context.Context, q dbClient.Query, args ...interfac
 }
 
 func (p *pg) QueryContext(ctx context.Context, q dbClient.Query, args ...interface{}) (pgx.Rows, error) {
-	//logQuery(ctx, q, args...)
+	logQuery(ctx, q, args...)
 
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
 	if ok {
@@ -73,7 +75,7 @@ func (p *pg) QueryContext(ctx context.Context, q dbClient.Query, args ...interfa
 }
 
 func (p *pg) QueryRowContext(ctx context.Context, q dbClient.Query, args ...interface{}) pgx.Row {
-	//logQuery(ctx, q, args...)
+	logQuery(ctx, q, args...)
 
 	tx, ok := ctx.Value(TxKey).(pgx.Tx)
 	if ok {
